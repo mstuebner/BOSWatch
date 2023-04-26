@@ -5,7 +5,7 @@ function exitcodefunction {
   action=$2
   module=$3
 
-  if [ $errorcode -ne "0" ]; then
+  if [ "$errorcode" -ne "0" ]; then
     echo "Action: $action on $module failed." >> $boswatch_install_path/setup_log.txt
     echo "Exitcode: $errorcode" >> $boswatch_install_path/setup_log.txt
     echo ""
@@ -91,7 +91,7 @@ for (( i=1; i<=$#; i=$i+2 )); do
 done
 
 # Create default paths
-mkdir -p $boswatchpath
+mkdir -p "$boswatchpath"
 mkdir -p $boswatch_install_path
 
 echo ""
@@ -116,7 +116,7 @@ tput cup 13 15
 echo "[ 3/9] [###------]"
 tput cup 15 5
 echo "-> download BOSWatch..................."
-cd $boswatchpath/
+cd "$boswatchpath"/ || exit
 
 case $branch in
   "dev") git clone -b develop https://github.com/Schrolli91/BOSWatch . >> $boswatch_install_path/setup_log.txt 2>&1 && \
@@ -130,17 +130,17 @@ tput cup 13 15
 echo "[ 4/9] [####-----]"
 tput cup 15 5
 echo "-> download rtl_fm......................"
-cd $boswatch_install_path
+cd $boswatch_install_path || exit
 git clone https://github.com/Schrolli91/rtl-sdr.git >> $boswatch_install_path/setup_log.txt 2>&1
 exitcodefunction $? git-clone rtl-sdr
-cd rtl-sdr/
+cd rtl-sdr/ || exit
 
 # Compie RTL-FM
 tput cup 13 15
 echo "[ 5/9] [#####----]"
 tput cup 15 5
 echo "-> compile rtl_fm......................"
-mkdir -p build && cd build
+mkdir -p build && cd build || exit
 cmake ../ -DINSTALL_UDEV_RULES=ON >> $boswatch_install_path/setup_log.txt 2>&1
 exitcodefunction $? cmake rtl-sdr
 
@@ -159,11 +159,11 @@ tput cup 13 15
 echo "[ 6/9] [######---]"
 tput cup 15 5
 echo "-> download multimon-ng................"
-cd $boswatch_install_path
+cd $boswatch_install_path || exit
 git clone https://github.com/Schrolli91/multimon-ng.git multimonNG >> $boswatch_install_path/setup_log.txt 2>&1
 exitcodefunction $? git-clone multimonNG
 
-cd $boswatch_install_path/multimonNG/
+cd $boswatch_install_path/multimonNG/ || exit
 
 # Compile Multimon-NG
 tput cup 13 15
@@ -171,7 +171,7 @@ echo "[ 7/9] [#######--]"
 tput cup 15 5
 echo "-> compile multimon-ng................."
 mkdir -p build
-cd build
+cd build || exit
 qmake ../multimon-ng.pro >> $boswatch_install_path/setup_log.txt 2>&1
 exitcodefunction $? qmake multimonNG
 
@@ -186,7 +186,7 @@ tput cup 13 15
 echo "[ 8/9] [########-]"
 tput cup 15 5
 echo "-> Download & Install MySQL connector for Python."
-cd $boswatch_install_path
+cd $boswatch_install_path || exit
 pip install mysql-connector-python >> $boswatch_install_path/setup_log.txt 2>&1
 exitcodefunction $? install mysql-connector
 
@@ -195,7 +195,7 @@ tput cup 13 15
 echo "[9/9] [#########]"
 tput cup 15 5
 echo "-> configure..........................."
-cd $boswatchpath/
+cd "$boswatchpath"/ || exit
 echo $'# BOSWatch - blacklist the DVB drivers to avoid conflicts with the SDR driver\n blacklist dvb_usb_rtl28xxu \n blacklist rtl2830\n blacklist dvb_usb_v2\n blacklist dvb_core' >> /etc/modprobe.d/boswatch_blacklist_sdr.conf
 
 # Installation is ready
@@ -211,18 +211,18 @@ echo "and modify the config as you need. This step is optional if you are upgrad
 tput cnorm
 
 # cleanup
-mkdir $boswatchpath/log/install -p
-mv $boswatch_install_path/setup_log.txt $boswatchpath/log/install/
+mkdir "$boswatchpath"/log/install -p
+mv $boswatch_install_path/setup_log.txt "$boswatchpath"/log/install/
 rm $boswatch_install_path/ -R
 
 #copy the template config to run boswatch
-cp $boswatchpath/config/config.template.ini $boswatchpath/config/config.ini
+cp "$boswatchpath"/config/config.template.ini "$boswatchpath"/config/config.ini
 
 
 #replay the backup
 if [ $didBackup = "true" ]; then
-	mkdir $boswatchpath/old/
-	mv /tmp/boswatch/* $boswatchpath/old/
+	mkdir "$boswatchpath"/old/
+	mv /tmp/boswatch/* "$boswatchpath"/old/
 fi
 
 if [ $reboot = "true" ]; then
